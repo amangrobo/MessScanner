@@ -14,7 +14,9 @@ public class UserModel {
     private String instituteId = "-1";
     private String mess;
     private String name;
-    private List<String> foodData;  //16_7_19_1
+    private List<String> foodData;  //16_7_19_1_0    day_month_year_mealNumber_status
+
+    //status: 0 for food not taken, 1 for food taken and -1 for food cancelled
 
     @NonNull
     public String getInstituteId() {

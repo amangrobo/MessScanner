@@ -6,8 +6,6 @@ import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -33,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements QRCodeReaderView.
     private UserDao userDao;
     private String currentMess;
     private String currentDate;
-    private int currentMeal;
+    private int mealNo;
     AlertDialog alertDialog;
 
     @Override
@@ -112,8 +110,6 @@ public class MainActivity extends AppCompatActivity implements QRCodeReaderView.
         parseQRData(text);
 
         qrCodeReaderView.stopCamera();
-        showDialog("title", text);
-
     }
 
     private void parseQRData(String instituteId) {
@@ -129,14 +125,23 @@ public class MainActivity extends AppCompatActivity implements QRCodeReaderView.
         }
 
         if (currentUser == null) {
-
+            showDialog(instituteId, "User not found");
         } else if (!currentUser.getMess().equals(currentMess)) {
-            Log.e("user", "not found");
+            showDialog(instituteId, "Mess not supported");
         } else {
 
             List<String> foodData = currentUser.getFoodData();
 
-//            String currentFoodData =
+            String currentCancelledFoodData = currentDate + "_" + mealNo + "_-1";
+            String currentTakenFoodData = currentDate + "_" + mealNo + "_1";
+
+            if (foodData.contains(currentCancelledFoodData)) {
+                showDialog(instituteId, "Food cancelled");
+            } else if (foodData.contains(currentTakenFoodData)) {
+                showDialog(instituteId, "Food already taken");
+            } else {
+                showDialog(instituteId, "Welcome");
+            }
 
         }
 
@@ -150,8 +155,6 @@ public class MainActivity extends AppCompatActivity implements QRCodeReaderView.
             alertDialog.show();
         }
 
-
-
     }
 
     @Override
@@ -163,7 +166,20 @@ public class MainActivity extends AppCompatActivity implements QRCodeReaderView.
         Calendar calendar = Calendar.getInstance();
         currentDate = dateFormat.format(calendar.getTime());
 
-        Toast.makeText(this, currentDate, Toast.LENGTH_SHORT).show();
+        int hour = calendar.getTime().getHours();
+
+        if (hour >= 7 && hour <= 10) {
+            mealNo = 1;
+        } else if (hour >= 12 && hour <= 15) {
+            mealNo = 2;
+        } else if (hour >= 16 && hour <= 18) {
+            mealNo = 3;
+        } else if (hour >= 19 && hour <= 22) {
+            mealNo = 4;
+        } else {
+            mealNo = -1;
+        }
+
     }
 
     @Override

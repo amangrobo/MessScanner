@@ -9,8 +9,8 @@ import static androidx.room.OnConflictStrategy.REPLACE;
 @Dao
 public interface UserDao {
 
-    @Query("select * from usermodel where instituteId = :id")
-    UserModel loadUserByInstituteId(String id);
+    @Query("select * from usermodel where studentMongoId = :id")
+    UserModel loadUserByMongoId(String id);
 
     @Insert(onConflict = REPLACE)
     void insertUser(UserModel userModel);
@@ -18,7 +18,7 @@ public interface UserDao {
     @Query("DELETE FROM usermodel")
     void deleteAllUsers();
 
-    @Query("SELECT COUNT(*) FROM usermodel where instituteId = :id")
+    @Query("SELECT COUNT(*) FROM usermodel where studentMongoId = :id")
     int getUserCount(String id);
 
 }

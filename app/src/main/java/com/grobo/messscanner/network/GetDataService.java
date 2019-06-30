@@ -1,21 +1,17 @@
 package com.grobo.messscanner.network;
 
-import com.grobo.messscanner.database.UserModel;
-
-import java.util.List;
-
-import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 public interface GetDataService {
 
     //users
-    @GET("/users")
-    Call<List<UserModel>> getAllUsersOfThisMess(@Body RequestBody body);
+    @GET("/mess/get/{mess}")
+    Call<ResponseBody> getAllUsersOfThisMess(@Path("mess") int mess);
 
-    @GET("/users/cancelled")
-    Call<List<UserModel>> login(@Body RequestBody body);
+    @GET("/mess/cancelled/{mess}")
+    Call<ResponseBody> getCancelledData(@Path("mess") int mess);
 
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    tools:context=".SyncActivity">
+
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:text="Daily Sync"
+        android:id="@+id/button_sync_daily"
+        android:textSize="20sp"
+        android:background="@drawable/bg_edittext"
+        android:layout_margin="16dp"/>
+
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:id="@+id/button_sync_monthly"
+        android:text="Monthly Sync"
+        android:textSize="20sp"
+        android:background="@drawable/bg_edittext"
+        android:layout_margin="16dp"/>
+
+
+</LinearLayout>

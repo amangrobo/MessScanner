@@ -29,15 +29,15 @@ public class Utils {
         }
     }
 
-    public static class LoadUserByInstituteId extends AsyncTask<String, Void, UserModel> {
+    public static class LoadUserByMongoId extends AsyncTask<String, Void, UserModel> {
         private UserDao mAsyncTaskDao;
-        public LoadUserByInstituteId(UserDao dao) {
+        public LoadUserByMongoId(UserDao dao) {
             mAsyncTaskDao = dao;
         }
 
         @Override
         protected UserModel doInBackground(String... params) {
-            return mAsyncTaskDao.loadUserByInstituteId(params[0]);
+            return mAsyncTaskDao.loadUserByMongoId(params[0]);
         }
     }
 }

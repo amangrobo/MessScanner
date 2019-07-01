@@ -7,7 +7,6 @@ import android.graphics.PointF;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -127,7 +126,6 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         UserModel currentUser = null;
 //        mealNo = spinner.getSelectedItem().toString();
 
-        Toast.makeText(this, mealNo, Toast.LENGTH_SHORT).show();
         Utils.LoadUserByMongoId task = new Utils.LoadUserByMongoId(userDao);
 
         try {
@@ -148,11 +146,11 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
             String currentTakenFoodData = currentDate + "_" + mealNo + "_1";
 
             if (foodData.contains(currentCancelledFoodData)) {
-                showDialog(currentUser.getName(), "Food cancelled");
+                showDialog(currentUser.getName(), currentDate + " Meal: " + mealNo + "\n\nFood cancelled");
             } else if (foodData.contains(currentTakenFoodData)) {
-                showDialog(currentUser.getName(), "Food already taken");
+                showDialog(currentUser.getName(), currentDate + " Meal: " + mealNo + "\n\nFood already taken");
             } else {
-                showDialog(currentUser.getName(), "Welcome");
+                showDialog(currentUser.getName(), currentDate + " Meal: " + mealNo + "\n\nWelcome");
 
                 Utils.InsertUser newTask = new Utils.InsertUser(userDao);
                 currentUser.getFoodData().add(currentTakenFoodData);

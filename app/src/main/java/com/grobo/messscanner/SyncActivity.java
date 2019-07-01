@@ -105,7 +105,6 @@ public class SyncActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void parseMonthlyJson(String json) {
-        Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
 
         try {
             JSONObject jsonObject = new JSONObject(json);
@@ -125,6 +124,7 @@ public class SyncActivity extends AppCompatActivity implements View.OnClickListe
 
                 UserModel newUser = new UserModel(studentMongoId, instituteId, messChoice, name);
 
+                Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
                 insertUser.execute(newUser);
             }
 
@@ -170,9 +170,6 @@ public class SyncActivity extends AppCompatActivity implements View.OnClickListe
 
     private void parseDailyJson(String json) {
 
-        Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
-        Utils.LoadUserByMongoId loadUser = new Utils.LoadUserByMongoId(userDao);
-
         try {
             JSONObject jsonObject = new JSONObject(json);
 
@@ -189,9 +186,12 @@ public class SyncActivity extends AppCompatActivity implements View.OnClickListe
                     foodData.add(cancelledMeals.getString(k));
                 }
 
+                Utils.LoadUserByMongoId loadUser = new Utils.LoadUserByMongoId(userDao);
                 UserModel existingUser = loadUser.execute(studentMongoId).get();
+
                 if (existingUser != null) {
                     existingUser.setFoodData(foodData);
+                    Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
                     insertUser.execute(existingUser);
                 }
 

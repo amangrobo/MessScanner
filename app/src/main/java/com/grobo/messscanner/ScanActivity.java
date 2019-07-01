@@ -6,8 +6,8 @@ import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -66,11 +66,11 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         });
         alertDialog = alertDialogBuilder.create();
 
-        spinner = findViewById(R.id.meal_spinner);
-        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_items, android.R.layout.simple_spinner_item);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(spinnerAdapter);
-        spinner.performClick();
+//        spinner = findViewById(R.id.meal_spinner);
+//        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_items, android.R.layout.simple_spinner_item);
+//        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        spinner.setAdapter(spinnerAdapter);
+//        spinner.performClick();
 
     }
 
@@ -125,8 +125,9 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
     private void parseQRData(String instituteId) {
 
         UserModel currentUser = null;
-        mealNo = spinner.getSelectedItem().toString();
+//        mealNo = spinner.getSelectedItem().toString();
 
+        Toast.makeText(this, mealNo, Toast.LENGTH_SHORT).show();
         Utils.LoadUserByMongoId task = new Utils.LoadUserByMongoId(userDao);
 
         try {
@@ -180,6 +181,20 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         DateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
         currentDate = dateFormat.format(calendar.getTime());
+
+        int hour = calendar.getTime().getHours();
+
+        if (hour >= 7 && hour <= 10) {
+            mealNo = "1";
+        } else if (hour >= 12 && hour <= 15) {
+            mealNo = "2";
+        } else if (hour >= 16 && hour <= 18) {
+            mealNo = "3";
+        } else if (hour >= 19 && hour <= 22) {
+            mealNo = "4";
+        } else {
+            mealNo = "other";
+        }
 
     }
 

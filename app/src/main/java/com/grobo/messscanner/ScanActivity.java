@@ -188,7 +188,7 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
             mealNo = "2";
         } else if (hour >= 16 && hour <= 18) {
             mealNo = "3";
-        } else if (hour >= 19 && hour <= 22) {
+        } else if (hour >= 19 && hour <= 23) {
             mealNo = "4";
         } else {
             mealNo = "other";

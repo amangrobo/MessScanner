@@ -4,8 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,20 +25,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         View scan = findViewById(R.id.main_scan);
-        scan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, ScanActivity.class));
-            }
-        });
+        scan.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ScanActivity.class)));
+    }
 
-        View sync = findViewById(R.id.main_sync_data);
-        sync.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, SyncActivity.class));
-            }
-        });
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate( R.menu.menu_main, menu );
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.menu_action_sync) {
+            startActivity(new Intent(MainActivity.this, SyncActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected( item );
     }
 }

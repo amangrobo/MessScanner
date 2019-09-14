@@ -1,12 +1,19 @@
 package com.grobo.messscanner;
 
 import android.Manifest;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -15,13 +22,19 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.grobo.messscanner.database.AppDatabase;
+import com.grobo.messscanner.database.TempModel;
 import com.grobo.messscanner.database.UserDao;
 import com.grobo.messscanner.database.UserModel;
 import com.grobo.messscanner.database.Utils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -30,12 +43,12 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
 
     private QRCodeReaderView qrCodeReaderView;
     private UserDao userDao;
-    private int currentMess;
+    private AlertDialog alertDialog;
+    private ListenerRegistration registration;
+    private List<DocumentSnapshot> documentSnapshots;
     private String currentDate;
-    private String mealNo;
-    AlertDialog alertDialog;
+    private int mealNo;
     private Spinner spinner;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,48 +56,66 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         setContentView(R.layout.activity_scan);
 
         qrCodeReaderView = findViewById(R.id.qr_reader_view);
+        ViewGroup.LayoutParams params = qrCodeReaderView.getLayoutParams();
+        params.width = getScreenWidth();
+        params.height = getScreenWidth();
+        qrCodeReaderView.setLayoutParams(params);
+
+        spinner = findViewById(R.id.meal_spinner);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                ((TextView) adapterView.getChildAt(0)).setTextColor(Color.WHITE);
+                mealNo = i+1;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         userDao = AppDatabase.getDatabase(this).userDao();
 
-        currentMess = PreferenceManager.getDefaultSharedPreferences(this).getInt("mess", 1);
-
         checkPermission();
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (dialog != null) dialog.dismiss();
-            }
-        });
-        alertDialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                qrCodeReaderView.startCamera();
-            }
-        });
-        alertDialog = alertDialogBuilder.create();
+        alertDialog = new AlertDialog.Builder(this)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    if (dialog != null) dialog.dismiss();
+                })
+                .setOnDismissListener(dialog -> {
+                    if (qrCodeReaderView != null)
+                        qrCodeReaderView.startCamera();
+                }).create();
 
-//        spinner = findViewById(R.id.meal_spinner);
-//        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.spinner_items, android.R.layout.simple_spinner_item);
-//        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        spinner.setAdapter(spinnerAdapter);
-//        spinner.performClick();
+        Calendar calendar = Calendar.getInstance();
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.clear();
+        calendar1.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE) + 1);
 
+        Log.e(getClass().getSimpleName(), calendar1.getTime().toString() + String.valueOf(calendar1.getTime().getTime()));
+
+        Query query = FirebaseFirestore.getInstance().collectionGroup("cancel").whereArrayContains("days", calendar1.getTime());
+        registration = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            if (e == null) {
+                if (queryDocumentSnapshots != null && queryDocumentSnapshots.getDocuments().size() > 0) {
+                    documentSnapshots = queryDocumentSnapshots.getDocuments();
+                    Log.e(getClass().getSimpleName(), documentSnapshots.toString());
+                }
+            } else if (e.getMessage() != null)
+                Log.e(getClass().getSimpleName(), e.getMessage());
+        });
     }
 
     private void checkPermission() {
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA},
                     10101);
-
         } else {
             initializeCamera();
         }
-
     }
 
     @Override
@@ -93,82 +124,98 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
     }
 
     private void initializeCamera() {
-
         qrCodeReaderView.setOnQRCodeReadListener(this);
-
-        // Use this function to enable/disable decoding
         qrCodeReaderView.setQRDecodingEnabled(true);
-
-        // Use this function to change the auto-focus interval (default is 5 secs)
-        qrCodeReaderView.setAutofocusInterval(1000L);
-
-//        // Use this function to enable/disable Torch
-//        qrCodeReaderView.setTorchEnabled(true);
-//
-//        // Use this function to set front camera preview
-//        qrCodeReaderView.setFrontCamera();
-//
-//        // Use this function to set back camera preview
+        qrCodeReaderView.setAutofocusInterval(500L);
         qrCodeReaderView.setBackCamera();
-
     }
 
     @Override
     public void onQRCodeRead(String text, PointF[] points) {
-
-        parseQRData(text);
-
         qrCodeReaderView.stopCamera();
+        showDialog(text.trim());
     }
 
-    private void parseQRData(String instituteId) {
-
-        UserModel currentUser = null;
-//        mealNo = spinner.getSelectedItem().toString();
-
-        Utils.LoadUserByMongoId task = new Utils.LoadUserByMongoId(userDao);
-
-        try {
-            currentUser = task.execute(instituteId).get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (currentUser == null) {
-            showDialog(instituteId, "User not found");
-        } else if (currentUser.getMess() != currentMess) {
-            showDialog(instituteId, "Mess not supported");
-        } else {
-
-            List<String> foodData = currentUser.getFoodData();
-
-            String currentCancelledFoodData = currentDate + "_" + mealNo + "_-1";
-            String currentTakenFoodData = currentDate + "_" + mealNo + "_1";
-
-            if (foodData.contains(currentCancelledFoodData)) {
-                showDialog(currentUser.getName(), currentDate + " Meal: " + mealNo + "\n\nFood cancelled");
-            } else if (foodData.contains(currentTakenFoodData)) {
-                showDialog(currentUser.getName(), currentDate + " Meal: " + mealNo + "\n\nFood already taken");
-            } else {
-                showDialog(currentUser.getName(), currentDate + " Meal: " + mealNo + "\n\nWelcome");
-
-                Utils.InsertUser newTask = new Utils.InsertUser(userDao);
-                currentUser.getFoodData().add(currentTakenFoodData);
-                newTask.execute(currentUser);
-            }
-
-        }
-
-    }
-
-    private void showDialog(String title, String message) {
+    private void showDialog(String email) {
 
         if (alertDialog != null && !alertDialog.isShowing()) {
-            alertDialog.setTitle(title);
-            alertDialog.setMessage(message);
+
+            alertDialog.setTitle(email);
+
+            String currentTakenFoodData = currentDate + "_" + mealNo + "_1";
+            int status = 0;
+
+            UserModel currentUser = null;
+            Utils.LoadUserById task = new Utils.LoadUserById(userDao);
+
+            try {
+                currentUser = task.execute(email).get();
+            } catch (Exception e) {
+                if (e.getMessage() != null)
+                    Log.e(getClass().getSimpleName(), e.getMessage());
+                alertDialog.setMessage("User does not exist !");
+            }
+
+
+            if (currentUser != null) {
+
+                alertDialog.setTitle(currentUser.getName() == null ? email : currentUser.getName());
+
+                if (documentSnapshots != null) {
+
+                    for (DocumentSnapshot d : documentSnapshots) {
+                        String[] split = d.getReference().getPath().split("/");
+
+                        TempModel curr = d.toObject(TempModel.class);
+
+                        if (email.equals(split[1])) {
+
+                            if (curr.isFull() || curr.getMeals().contains(mealNo)) {
+                                alertDialog.setMessage("Meal cancelled...");
+                                status = -1;
+                            }
+
+                        }
+
+                        if (status != -1 && currentUser.getFoodData().contains(currentTakenFoodData)) {
+                            alertDialog.setMessage("Food already taken...");
+                            status = 1;
+                        }
+                        if (status == 0) {
+                            alertDialog.setMessage("Welcome");
+
+                            Utils.InsertUser newTask = new Utils.InsertUser(userDao);
+                            List<String> foodData = currentUser.getFoodData();
+                            if (foodData == null) foodData = new ArrayList<>();
+                            foodData.add(currentTakenFoodData);
+                            currentUser.setFoodData(foodData);
+                            newTask.execute(currentUser);
+                        }
+                    }
+
+                } else {
+                    if (currentUser.getFoodData().contains(currentTakenFoodData)) {
+                        alertDialog.setMessage("Food already taken...");
+                        status = 1;
+                    }
+                    if (status == 0) {
+                        alertDialog.setMessage("Welcome");
+
+                        Utils.InsertUser newTask = new Utils.InsertUser(userDao);
+                        List<String> foodData = currentUser.getFoodData();
+                        if (foodData == null) foodData = new ArrayList<>();
+                        foodData.add(currentTakenFoodData);
+                        currentUser.setFoodData(foodData);
+                        newTask.execute(currentUser);
+                    }
+                }
+
+            } else {
+                alertDialog.setMessage("User does not exist !");
+            }
+
             alertDialog.show();
         }
-
     }
 
     @Override
@@ -180,18 +227,18 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         Calendar calendar = Calendar.getInstance();
         currentDate = dateFormat.format(calendar.getTime());
 
-        int hour = calendar.getTime().getHours();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
         if (hour >= 7 && hour <= 10) {
-            mealNo = "1";
-        } else if (hour >= 12 && hour <= 15) {
-            mealNo = "2";
+            spinner.setSelection(0);
+        } else if (hour >= 12 && hour <= 14) {
+            spinner.setSelection(1);
         } else if (hour >= 16 && hour <= 18) {
-            mealNo = "3";
-        } else if (hour >= 19 && hour <= 23) {
-            mealNo = "4";
+            spinner.setSelection(2);
+        } else if (hour >= 19) {
+            spinner.setSelection(3);
         } else {
-            mealNo = "other";
+            spinner.setSelection(4);
         }
 
     }
@@ -201,4 +248,19 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         super.onPause();
         qrCodeReaderView.stopCamera();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (registration != null)
+            registration.remove();
+    }
+
+    public int getScreenWidth() {
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics dm = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getMetrics(dm);
+        return dm.widthPixels;
+    }
+
 }

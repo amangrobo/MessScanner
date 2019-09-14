@@ -2,32 +2,23 @@ package com.grobo.messscanner;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.grobo.messscanner.database.AppDatabase;
 import com.grobo.messscanner.database.UserDao;
 import com.grobo.messscanner.database.UserModel;
 import com.grobo.messscanner.database.Utils;
-import com.grobo.messscanner.network.GetDataService;
-import com.grobo.messscanner.network.RetrofitClientInstance;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class SyncActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -53,14 +44,7 @@ public class SyncActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
 
-        if (v.getId() == R.id.button_sync_daily) {
-
-            progressDialog.setMessage("Loading data... Please wait.");
-            progressDialog.show();
-
-            syncDaily();
-
-        } else if (v.getId() == R.id.button_sync_monthly) {
+        if (v.getId() == R.id.button_sync_monthly) {
 
             progressDialog.setMessage("Loading data... Please wait.");
             progressDialog.show();
@@ -75,133 +59,36 @@ public class SyncActivity extends AppCompatActivity implements View.OnClickListe
 
         int mess = PreferenceManager.getDefaultSharedPreferences(this).getInt("mess", 1);
 
-        GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
+        FirebaseAuth.getInstance().signInWithEmailAndPassword("mess1@notifications-grobo.web.app", "messone").addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Query query = FirebaseFirestore.getInstance().collection("mess").whereEqualTo("mess", mess);
+                query.get().addOnCompleteListener(task1 -> {
 
-        Call<ResponseBody> call = service.getAllUsersOfThisMess(mess);
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    String json = null;
-                    try {
-                        json = response.body().string();
-                        parseMonthlyJson(json);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (task1.isSuccessful() && task1.getResult() != null) {
+                        List<UserModel> documents = task1.getResult().toObjects(UserModel.class);
+
+                        Log.e(getClass().getSimpleName(), task1.getResult().getDocuments().toString());
+
+                        new Utils.DeleteAllUsersTask(userDao).execute();
+
+                        new Handler().postDelayed(() -> {
+                            for (UserModel userModel : documents) {
+                                Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
+                                insertUser.execute(userModel);
+                            }
+                            if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
+                        }, 100);
+
+                    } else {
+                        Toast.makeText(SyncActivity.this, "Sync failed " + new String(Character.toChars(0x1F641)) + " , please try again", Toast.LENGTH_SHORT).show();
+                        if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
                     }
-                    Log.e("json", json);
-                } else {
-                    Log.e("json", "failed");
-                    if (progressDialog!= null && progressDialog.isShowing()) progressDialog.dismiss();
-                }
-            }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e("failure", t.getMessage());
-                if (progressDialog!= null && progressDialog.isShowing()) progressDialog.dismiss();
+                });
+
+            } else {
+                Toast.makeText(this, "Sync Failed !!", Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    private void parseMonthlyJson(String json) {
-
-        try {
-            JSONObject jsonObject = new JSONObject(json);
-
-            JSONArray array = jsonObject.getJSONArray("mess");
-            for (int j = 0; j < array.length(); j++) {
-
-                JSONObject user = array.getJSONObject(j);
-
-                String studentMongoId = user.getString("studentMongoId");
-                int messChoice = user.getInt("messChoice");
-
-                JSONObject stud = user.getJSONObject("student");
-
-                String instituteId = stud.getString("instituteId");
-                String name = stud.getString("name");
-
-                UserModel newUser = new UserModel(studentMongoId, instituteId, messChoice, name);
-
-                Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
-                insertUser.execute(newUser);
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if (progressDialog!= null && progressDialog.isShowing()) progressDialog.dismiss();
-
-    }
-
-    private void syncDaily() {
-        int mess = PreferenceManager.getDefaultSharedPreferences(this).getInt("mess", 1);
-
-        GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
-
-        Call<ResponseBody> call = service.getCancelledData(mess);
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    String json = null;
-                    try {
-                        json = response.body().string();
-                        parseDailyJson(json);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Log.e("json", json);
-                } else {
-                    Log.e("json", "failed");
-                    if (progressDialog!= null && progressDialog.isShowing()) progressDialog.dismiss();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e("failure", t.getMessage());
-                if (progressDialog!= null && progressDialog.isShowing()) progressDialog.dismiss();
-            }
-        });
-    }
-
-    private void parseDailyJson(String json) {
-
-        try {
-            JSONObject jsonObject = new JSONObject(json);
-
-            JSONArray array = jsonObject.getJSONArray("mess");
-            for (int j = 0; j < array.length(); j++) {
-
-                JSONObject user = array.getJSONObject(j);
-
-                String studentMongoId = user.getJSONObject("student").getString("_id");
-
-                JSONArray cancelledMeals = user.getJSONArray("cancelledMeals");
-                List<String> foodData = new ArrayList<>();
-                for (int k = 0; k < cancelledMeals.length(); k++) {
-                    foodData.add(cancelledMeals.getString(k));
-                }
-
-                Utils.LoadUserByMongoId loadUser = new Utils.LoadUserByMongoId(userDao);
-                UserModel existingUser = loadUser.execute(studentMongoId).get();
-
-                if (existingUser != null) {
-                    existingUser.setFoodData(foodData);
-                    Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
-                    insertUser.execute(existingUser);
-                }
-
-            }
-
-        } catch (JSONException | ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if (progressDialog!= null && progressDialog.isShowing()) progressDialog.dismiss();
-
     }
 }

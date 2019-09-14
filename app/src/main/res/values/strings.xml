@@ -2,10 +2,10 @@
     <string name="app_name">Mess Scanner</string>
 
     <string-array name="spinner_items">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
+        <item>Breakfast</item>
+        <item>Lunch</item>
+        <item>Snacks</item>
+        <item>Dinner</item>
         <item>Other</item>
     </string-array>
 

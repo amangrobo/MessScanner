@@ -30,7 +30,7 @@ public class Converters {
 
     @TypeConverter
     public static String stringFromLongArray(List<Long> strings) {
-        if (strings != null) {
+        if (strings != null && strings.size() > 0) {
             StringBuilder string = new StringBuilder();
             for (Long s : strings) string.append(s).append(",");
 
@@ -42,9 +42,9 @@ public class Converters {
     @TypeConverter
     public static List<Long> longArrayFromString(String concatenatedStrings) {
 
-        if (concatenatedStrings != null) {
+        if (concatenatedStrings != null && !concatenatedStrings.equals("")) {
 
-            List<String> a = Arrays.asList(concatenatedStrings.split(","));
+            String[] a = concatenatedStrings.split(",");
 
             List<Long> ret = new ArrayList<>();
             for (String b : a) {
@@ -53,7 +53,7 @@ public class Converters {
 
             return ret;
         }
-        return null;
+        return new ArrayList<>();
     }
 
 }

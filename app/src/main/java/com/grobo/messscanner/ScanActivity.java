@@ -48,13 +48,13 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
 
         messViewModel = ViewModelProviders.of(this).get(MessViewModel.class);
 
-        checkPermission();
-
         qrCodeReaderView = findViewById(R.id.qr_reader_view);
         ViewGroup.LayoutParams params = qrCodeReaderView.getLayoutParams();
         params.width = getScreenWidth();
         params.height = getScreenWidth();
         qrCodeReaderView.setLayoutParams(params);
+
+        checkPermission();
 
         spinner = findViewById(R.id.meal_spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -70,6 +70,7 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         });
 
         alertDialog = new AlertDialog.Builder(this)
+                .setCancelable(false)
                 .setPositiveButton("OK", (dialog, which) -> {
                     if (dialog != null) dialog.dismiss();
                 })
@@ -220,6 +221,10 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
                         currentModel.setTaken(takenData);
                         messViewModel.update(currentModel);
                     }
+                } else {
+                    SpannableStringBuilder spn = new SpannableStringBuilder("Unknown meal");
+                    spn.setSpan(new ForegroundColorSpan(Color.BLUE), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    alertDialog.setMessage(spn);
                 }
 
             } else {

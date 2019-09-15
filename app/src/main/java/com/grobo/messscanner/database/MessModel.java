@@ -6,7 +6,6 @@ import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Keep
-@IgnoreExtraProperties
 @Entity(tableName = "mess")
 public class MessModel {
 

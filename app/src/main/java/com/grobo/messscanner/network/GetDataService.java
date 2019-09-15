@@ -9,7 +9,7 @@ import retrofit2.http.Path;
 public interface GetDataService {
 
     //users
-    @GET("/mess/{mess}")
+    @GET("/mess/data/{mess}")
     Call<MessModel.MessSuper> getAllUsersOfThisMess(@Path("mess") int mess);
 
 }

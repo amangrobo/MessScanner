@@ -16,7 +16,7 @@ public class Student {
     private String id;
     @Expose
     @SerializedName("instituteId")
-    private int instituteId;
+    private String instituteId;
 
     public String getName() {
         return name;
@@ -34,11 +34,11 @@ public class Student {
         this.id = id;
     }
 
-    public int getInstituteId() {
+    public String getInstituteId() {
         return instituteId;
     }
 
-    public void setInstituteId(int instituteId) {
+    public void setInstituteId(String instituteId) {
         this.instituteId = instituteId;
     }
 }

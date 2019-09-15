@@ -26,7 +26,7 @@
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/main_sync_data"
+        android:id="@+id/main_data"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_margin="16dp"
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Sync Data"
+            android:text="Data"
             android:textColor="@android:color/white"
             android:textSize="22sp" />
 

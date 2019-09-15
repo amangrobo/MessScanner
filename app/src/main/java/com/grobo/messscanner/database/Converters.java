@@ -28,4 +28,32 @@ public class Converters {
         return null;
     }
 
+    @TypeConverter
+    public static String stringFromLongArray(List<Long> strings) {
+        if (strings != null) {
+            StringBuilder string = new StringBuilder();
+            for (Long s : strings) string.append(s).append(",");
+
+            return string.toString();
+        }
+        return "";
+    }
+
+    @TypeConverter
+    public static List<Long> longArrayFromString(String concatenatedStrings) {
+
+        if (concatenatedStrings != null) {
+
+            List<String> a = Arrays.asList(concatenatedStrings.split(","));
+
+            List<Long> ret = new ArrayList<>();
+            for (String b : a) {
+                ret.add(Long.parseLong(b));
+            }
+
+            return ret;
+        }
+        return null;
+    }
+
 }

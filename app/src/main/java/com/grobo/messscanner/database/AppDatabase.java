@@ -7,13 +7,13 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {UserModel.class}, version = 1, exportSchema = false)
+@Database(entities = {MessModel.class}, version = 1, exportSchema = false)
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
 
-    public abstract UserDao userDao();
+    public abstract MessDao messDao();
 
     public static AppDatabase getDatabase(Context context) {
         if (INSTANCE == null) {
@@ -22,6 +22,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             AppDatabase.class, "app_database")
                             .allowMainThreadQueries()
+                            .fallbackToDestructiveMigrationFrom(1)
                             .build();
                 }
             }

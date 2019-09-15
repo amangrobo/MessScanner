@@ -2,93 +2,141 @@ package com.grobo.messscanner;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.grobo.messscanner.database.AppDatabase;
-import com.grobo.messscanner.database.UserDao;
-import com.grobo.messscanner.database.UserModel;
-import com.grobo.messscanner.database.Utils;
+import com.grobo.messscanner.database.MessModel;
+import com.grobo.messscanner.database.MessViewModel;
+import com.grobo.messscanner.network.GetDataService;
+import com.grobo.messscanner.network.RetrofitClientInstance;
 
 import java.util.List;
 
-public class SyncActivity extends AppCompatActivity implements View.OnClickListener {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-    private UserDao userDao;
+public class SyncActivity extends AppCompatActivity {
+
     private ProgressDialog progressDialog;
+    private MessViewModel messViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sync);
 
-        findViewById(R.id.button_sync_daily).setOnClickListener(this);
-        findViewById(R.id.button_sync_monthly).setOnClickListener(this);
-
-        userDao = AppDatabase.getDatabase(this).userDao();
-
+        messViewModel = ViewModelProviders.of(this).get(MessViewModel.class);
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setIndeterminate(true);
         progressDialog.setCanceledOnTouchOutside(false);
+
+
+        findViewById(R.id.button_sync).setOnClickListener(view -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Alert !!")
+                    .setMessage("Are you sure you want to sync ??\nYou need to do this only once a day in the morning.")
+                    .setPositiveButton("OK", (dialogInterface, i) -> {
+                        sync();
+                    })
+                    .setNegativeButton("Cancel", (dialogInterface, i) -> {
+                        if (dialogInterface != null) dialogInterface.dismiss();
+                    }).show();
+        });
+
     }
 
-    @Override
-    public void onClick(View v) {
+    private void sync() {
 
-        if (v.getId() == R.id.button_sync_monthly) {
-
-            progressDialog.setMessage("Loading data... Please wait.");
-            progressDialog.show();
-
-            syncMonthly();
-
-        }
-
-    }
-
-    private void syncMonthly() {
+        progressDialog.setMessage("Loading data... Please wait.");
+        progressDialog.show();
 
         int mess = PreferenceManager.getDefaultSharedPreferences(this).getInt("mess", 1);
 
-        FirebaseAuth.getInstance().signInWithEmailAndPassword("mess1@notifications-grobo.web.app", "messone").addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Query query = FirebaseFirestore.getInstance().collection("mess").whereEqualTo("mess", mess);
-                query.get().addOnCompleteListener(task1 -> {
+        GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
 
-                    if (task1.isSuccessful() && task1.getResult() != null) {
-                        List<UserModel> documents = task1.getResult().toObjects(UserModel.class);
+        Call<MessModel.MessSuper> call = service.getAllUsersOfThisMess(mess);
+        call.enqueue(new Callback<MessModel.MessSuper>() {
+            @Override
+            public void onResponse(@NonNull Call<MessModel.MessSuper> call, @NonNull Response<MessModel.MessSuper> response) {
+                if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
 
-                        Log.e(getClass().getSimpleName(), task1.getResult().getDocuments().toString());
+                if (response.isSuccessful()) {
 
-                        new Utils.DeleteAllUsersTask(userDao).execute();
+                    if (response.body() != null && response.body().getMessModels() != null) {
 
-                        new Handler().postDelayed(() -> {
-                            for (UserModel userModel : documents) {
-                                Utils.InsertUser insertUser = new Utils.InsertUser(userDao);
-                                insertUser.execute(userModel);
-                            }
-                            if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
-                        }, 100);
+                        List<MessModel> messModels = response.body().getMessModels();
 
-                    } else {
-                        Toast.makeText(SyncActivity.this, "Sync failed " + new String(Character.toChars(0x1F641)) + " , please try again", Toast.LENGTH_SHORT).show();
-                        if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
+                        for (MessModel messModel : messModels)
+                            messViewModel.insert(messModel);
+
                     }
 
-                });
+                    Toast.makeText(SyncActivity.this, "Sync Successful " + new String(Character.toChars(0x1F642)), Toast.LENGTH_LONG).show();
 
-            } else {
-                Toast.makeText(this, "Sync Failed !!", Toast.LENGTH_LONG).show();
+
+                } else {
+                    Log.e(getClass().getSimpleName(), "sync failed");
+                    Toast.makeText(SyncActivity.this, "Sync failed " + new String(Character.toChars(0x1F641)) + " , please try again", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<MessModel.MessSuper> call, @NonNull Throwable t) {
+                if (t.getMessage() != null)
+                    Log.e("failure", t.getMessage());
+                if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
+                Toast.makeText(SyncActivity.this, "Sync failed " + new String(Character.toChars(0x1F641)) + " , please try again", Toast.LENGTH_LONG).show();
             }
         });
+
+
     }
+
+//    private void syncMonthly() {
+//        progressDialog.setMessage("Loading data... Please wait.");
+//        progressDialog.show();
+//
+//        int mess = PreferenceManager.getDefaultSharedPreferences(this).getInt("mess", 1);
+//
+//        FirebaseAuth.getInstance().signInWithEmailAndPassword("mess1@notifications-grobo.web.app", "messone").addOnCompleteListener(task -> {
+//            if (task.isSuccessful()) {
+//                Query query = FirebaseFirestore.getInstance().collection("mess").whereEqualTo("mess", mess);
+//                query.get().addOnCompleteListener(task1 -> {
+//
+//                    if (task1.isSuccessful() && task1.getResult() != null) {
+//                        List<MessModel> documents = task1.getResult().toObjects(MessModel.class);
+//
+//                        new Utils.DeleteAllUsersTask(messDao).execute();
+//
+//                        new Handler().postDelayed(() -> {
+//                            for (MessModel messModel : documents) {
+//                                Utils.InsertUser insertUser = new Utils.InsertUser(messDao);
+//                                insertUser.execute(messModel);
+//                            }
+//                            if (progressDialog != null && progressDialog.isShowing())
+//                                progressDialog.dismiss();
+//                            Toast.makeText(this, "Successfully synced.", Toast.LENGTH_SHORT).show();
+//                        }, 100);
+//
+//                    } else {
+//                        Toast.makeText(SyncActivity.this, "Sync failed " + new String(Character.toChars(0x1F641)) + " , please try again", Toast.LENGTH_LONG).show();
+//                        if (progressDialog != null && progressDialog.isShowing())
+//                            progressDialog.dismiss();
+//                    }
+//
+//                });
+//
+//            } else {
+//                Toast.makeText(this, "Sync failed " + new String(Character.toChars(0x1F641)) + " , please try again", Toast.LENGTH_LONG).show();
+//            }
+//        });
+//    }
 }

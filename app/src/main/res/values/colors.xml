@@ -2,6 +2,6 @@
 <resources>
     <color name="colorPrimary">#363636</color>
     <color name="colorPrimaryDark">#363636</color>
-    <color name="colorAccent">#FFC107</color>
+    <color name="colorAccent">@android:color/holo_blue_dark</color>
     <color name="colorBackground">#363636</color>
 </resources>

@@ -11,6 +11,8 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.grobo.messscanner.show.ShowActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -26,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
 
         View scan = findViewById(R.id.main_scan);
         scan.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ScanActivity.class)));
+
+        View data = findViewById(R.id.main_data);
+        data.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ShowActivity.class)));
     }
 
 

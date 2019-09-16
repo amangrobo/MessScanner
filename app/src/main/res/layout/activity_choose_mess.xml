@@ -11,6 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Choose Mess:"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:textSize="22sp"
         android:layout_margin="8dp"/>
 
     <TextView
@@ -18,6 +21,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/mess_bh1_1"
         android:text="BH1 Mess 1"
+        android:textSize="20sp"
         android:layout_margin="8dp"/>
 
     <TextView
@@ -25,6 +29,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/mess_bh1_2"
         android:text="BH1 Mess 2"
+        android:textSize="20sp"
         android:layout_margin="8dp"/>
 
     <TextView
@@ -32,6 +37,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/mess_bh2"
         android:text="BH2 Mess"
+        android:textSize="20sp"
+
         android:layout_margin="8dp"/>
 
     <TextView
@@ -39,7 +46,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/mess_gh"
         android:text="GH Mess"
-        android:layout_margin="8dp"/>
+        android:textSize="20sp"
 
+        android:layout_margin="8dp"/>
 
 </LinearLayout>

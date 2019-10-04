@@ -75,7 +75,7 @@ public class SyncActivity extends AppCompatActivity {
                         List<MessModel> messModels = response.body().getMessModels();
 
                         for (MessModel messModel : messModels)
-                            messViewModel.insert(messModel);
+                            messViewModel.update(messModel);
 
                     }
 

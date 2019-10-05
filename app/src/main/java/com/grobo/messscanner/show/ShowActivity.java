@@ -90,33 +90,33 @@ public class ShowActivity extends AppCompatActivity {
 
         List<MessModel> allUsers = messViewModel.getAllUsers();
 
-        for (MessModel d : allUsers) {
-            if (d.getFullDay().contains(checkTime)) {
-                nBreakfast++;
-                nLunch++;
-                nSnacks++;
-                nDinner++;
-            } else {
-                if (d.getBreakfast().contains(checkTime))
-                    nBreakfast++;
-                if (d.getLunch().contains(checkTime))
-                    nLunch++;
-                if (d.getSnacks().contains(checkTime))
-                    nSnacks++;
-                if (d.getDinner().contains(checkTime))
-                    nDinner++;
-            }
-        }
-
-        breakfastCancelled.setText(String.valueOf(nBreakfast));
-        lunchCancelled.setText(String.valueOf(nLunch));
-        snacksCancelled.setText(String.valueOf(nSnacks));
-        dinnerCancelled.setText(String.valueOf(nDinner));
-
-        breakfastRemaining.setText(String.valueOf(nTotal - nBreakfast));
-        lunchRemaining.setText(String.valueOf(nTotal - nLunch));
-        snacksRemaining.setText(String.valueOf(nTotal - nSnacks));
-        dinnerRemaining.setText(String.valueOf(nTotal - nDinner));
+//        for (MessModel d : allUsers) {
+//            if (d.getFullDay().contains(checkTime)) {
+//                nBreakfast++;
+//                nLunch++;
+//                nSnacks++;
+//                nDinner++;
+//            } else {
+//                if (d.getBreakfast().contains(checkTime))
+//                    nBreakfast++;
+//                if (d.getLunch().contains(checkTime))
+//                    nLunch++;
+//                if (d.getSnacks().contains(checkTime))
+//                    nSnacks++;
+//                if (d.getDinner().contains(checkTime))
+//                    nDinner++;
+//            }
+//        }
+//
+//        breakfastCancelled.setText(String.valueOf(nBreakfast));
+//        lunchCancelled.setText(String.valueOf(nLunch));
+//        snacksCancelled.setText(String.valueOf(nSnacks));
+//        dinnerCancelled.setText(String.valueOf(nDinner));
+//
+//        breakfastRemaining.setText(String.valueOf(nTotal - nBreakfast));
+//        lunchRemaining.setText(String.valueOf(nTotal - nLunch));
+//        snacksRemaining.setText(String.valueOf(nTotal - nSnacks));
+//        dinnerRemaining.setText(String.valueOf(nTotal - nDinner));
 
     }
 }

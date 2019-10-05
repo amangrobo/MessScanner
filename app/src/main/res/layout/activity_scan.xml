@@ -6,29 +6,6 @@
     android:background="@color/colorBackground"
     tools:context=".ScanActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/meal_text"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="16dp"
-        android:text="Select Meal :"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:textColor="@android:color/white" />
-
-    <Spinner
-        android:id="@+id/meal_spinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@id/meal_text"
-        android:backgroundTint="@android:color/white"
-        android:layout_marginTop="16dp"
-        android:entries="@array/spinner_items"
-        android:spinnerMode="dropdown"
-        android:translationZ="1dp" />
-
     <com.dlazaro66.qrcodereaderview.QRCodeReaderView
         android:id="@+id/qr_reader_view"
         android:layout_width="match_parent"

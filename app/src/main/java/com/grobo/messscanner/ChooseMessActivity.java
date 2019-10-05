@@ -15,8 +15,6 @@ public class ChooseMessActivity extends AppCompatActivity implements View.OnClic
 
         findViewById(R.id.mess_bh1_1).setOnClickListener(this);
         findViewById(R.id.mess_bh1_2).setOnClickListener(this);
-        findViewById(R.id.mess_bh2).setOnClickListener(this);
-        findViewById(R.id.mess_gh).setOnClickListener(this);
 
     }
 
@@ -29,12 +27,6 @@ public class ChooseMessActivity extends AppCompatActivity implements View.OnClic
                 break;
             case R.id.mess_bh1_2:
                 mess = 2;
-                break;
-            case R.id.mess_bh2:
-                mess = 3;
-                break;
-            case R.id.mess_gh:
-                mess = 4;
                 break;
         }
 

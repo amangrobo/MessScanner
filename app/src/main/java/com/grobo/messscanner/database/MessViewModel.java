@@ -32,12 +32,12 @@ public class MessViewModel extends AndroidViewModel {
         new insertAsyncTask(messDao).execute(messModel);
     }
 
-    public void update(MessModel messModel) {
-        new updateAsyncTask(messDao).execute(messModel);
+    public void deleteAll() {
+        new DeleteAllTask(messDao).execute();
     }
 
-    public MessModel getUserByMongoId(String id) {
-        loadUserByMongoIdTask task = new loadUserByMongoIdTask(messDao);
+    public MessModel getUserByToken(String id) {
+        LoadUserByTokenTask task = new LoadUserByTokenTask(messDao);
         try {
             return task.execute(id).get();
         } catch (Exception e) {
@@ -81,28 +81,15 @@ public class MessViewModel extends AndroidViewModel {
         }
     }
 
-    private static class updateAsyncTask extends AsyncTask<MessModel, Void, Void> {
+    private static class LoadUserByTokenTask extends AsyncTask<String, Void, MessModel> {
         private MessDao mAsyncTaskDao;
-        updateAsyncTask(MessDao dao) {
-            mAsyncTaskDao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(final MessModel... params) {
-            mAsyncTaskDao.updateUser(params[0]);
-            return null;
-        }
-    }
-
-    private static class loadUserByMongoIdTask extends AsyncTask<String, Void, MessModel> {
-        private MessDao mAsyncTaskDao;
-        loadUserByMongoIdTask(MessDao dao) {
+        LoadUserByTokenTask(MessDao dao) {
             mAsyncTaskDao = dao;
         }
 
         @Override
         protected MessModel doInBackground(String... params) {
-            return mAsyncTaskDao.loadUserByMongoId(params[0]);
+            return mAsyncTaskDao.loadUserByToken(params[0]);
         }
     }
 
@@ -115,6 +102,19 @@ public class MessViewModel extends AndroidViewModel {
         @Override
         protected Integer doInBackground(Void... params) {
             return mAsyncTaskDao.getUserCount();
+        }
+    }
+
+    private static class DeleteAllTask extends AsyncTask<Void, Void, Void> {
+        private MessDao mAsyncTaskDao;
+        DeleteAllTask(MessDao dao) {
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            mAsyncTaskDao.deleteAllUsers();
+            return null;
         }
     }
 

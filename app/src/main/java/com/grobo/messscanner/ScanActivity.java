@@ -115,15 +115,15 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
                     currentModel.setTaken(true);
                     messViewModel.insert(currentModel);
                 }
+            }  else {
+                SpannableStringBuilder spn = new SpannableStringBuilder("User doesn't exist.");
+                spn.setSpan(new ForegroundColorSpan(Color.RED), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                alertDialog.setMessage(spn);
             }
 
-        } else {
-            SpannableStringBuilder spn = new SpannableStringBuilder("User doesn't exist.");
-            spn.setSpan(new ForegroundColorSpan(Color.RED), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            alertDialog.setMessage(spn);
+            alertDialog.show();
         }
 
-        alertDialog.show();
     }
 
     @Override
